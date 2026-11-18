@@ -1,0 +1,1329 @@
+<!DOCTYPE html>
+<html lang="tr" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Media Converter</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+
+  <style>
+    :root,
+    [data-theme="light"] {
+      --bg: #F3F2EE;
+      --surface: #FAF9F6;
+      --surface-recessed: #EBEAE4;
+      --surface-hover: #E3E1DA;
+      --border: #DDDCD5;
+      --border-strong: #C6C4BC;
+      --text: #19191B;
+      --text-secondary: #5C5C63;
+      --text-muted: #86868E;
+      --btn-bg: #1B1B1D;
+      --btn-text: #F5F4F0;
+      --btn-hover: #303034;
+      --pill-active-bg: #FAF9F6;
+      --pill-active-text: #19191B;
+      --pill-active-shadow: 0 1px 2px rgba(20, 20, 22, 0.08);
+      --card-shadow: 0 1px 3px rgba(20, 20, 22, 0.04), 0 8px 24px rgba(20, 20, 22, 0.03);
+      --danger-bg: #F6ECEC;
+      --danger-border: #DEC0C0;
+      --danger-text: #8A2C2F;
+      --focus-ring: rgba(25, 25, 27, 0.16);
+    }
+
+    [data-theme="dark"] {
+      --bg: #121213;
+      --surface: #19191B;
+      --surface-recessed: #222225;
+      --surface-hover: #2A2A2E;
+      --border: #2C2C30;
+      --border-strong: #424248;
+      --text: #ECECE8;
+      --text-secondary: #9898A0;
+      --text-muted: #6C6C74;
+      --btn-bg: #EAEAE5;
+      --btn-text: #141416;
+      --btn-hover: #D4D4CE;
+      --pill-active-bg: #2E2E33;
+      --pill-active-text: #F0F0EC;
+      --pill-active-shadow: 0 1px 2px rgba(0, 0, 0, 0.28);
+      --card-shadow: 0 1px 2px rgba(0, 0, 0, 0.2), 0 12px 32px rgba(0, 0, 0, 0.24);
+      --danger-bg: #241718;
+      --danger-border: #4A2426;
+      --danger-text: #E59B9D;
+      --focus-ring: rgba(236, 236, 232, 0.16);
+    }
+
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html, body {
+      height: 100%;
+      user-select: none;
+    }
+
+    input, .result-title, .folder-path {
+      user-select: text;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      -webkit-font-smoothing: antialiased;
+      transition: background-color 0.2s ease, color 0.2s ease;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+
+    .mono {
+      font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    /* Top Bar */
+    .topbar {
+      width: 100%;
+      max-width: 580px;
+      margin: 0 auto;
+      padding: 18px 22px 0;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .brand {
+      display: inline-flex;
+      align-items: center;
+      gap: 9px;
+      color: var(--text);
+      font-size: 13px;
+      font-weight: 500;
+      letter-spacing: -0.01em;
+    }
+
+    .brand img {
+      width: 20px;
+      height: 20px;
+      border-radius: 5px;
+      display: block;
+    }
+
+    .controls {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .lang-switch {
+      display: inline-flex;
+      background: var(--surface-recessed);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 2px;
+    }
+
+    .lang-btn {
+      appearance: none;
+      border: none;
+      background: transparent;
+      color: var(--text-muted);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      font-weight: 500;
+      padding: 4px 8px;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .lang-btn:hover { color: var(--text); }
+    .lang-btn.active {
+      background: var(--pill-active-bg);
+      color: var(--pill-active-text);
+      box-shadow: var(--pill-active-shadow);
+    }
+
+    .icon-btn {
+      appearance: none;
+      width: 32px;
+      height: 30px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--surface-recessed);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text-secondary);
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .icon-btn:hover {
+      background: var(--surface-hover);
+      color: var(--text);
+      border-color: var(--border-strong);
+    }
+
+    /* Main Layout */
+    .container {
+      width: 100%;
+      max-width: 580px;
+      margin: auto;
+      padding: 24px 22px 24px;
+    }
+
+    .heading-block {
+      margin-bottom: 20px;
+    }
+
+    .heading-block h1 {
+      font-size: 23px;
+      font-weight: 600;
+      letter-spacing: -0.03em;
+      line-height: 1.2;
+      color: var(--text);
+      margin-bottom: 5px;
+    }
+
+    .heading-block p {
+      font-size: 13.5px;
+      color: var(--text-secondary);
+      line-height: 1.45;
+    }
+
+    /* Card */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 22px;
+      box-shadow: var(--card-shadow);
+      transition: background-color 0.2s ease, border-color 0.2s ease;
+    }
+
+    .field-group {
+      margin-bottom: 18px;
+    }
+
+    .field-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 7px;
+    }
+
+    .field-label {
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--text-secondary);
+    }
+
+    .field-hint {
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    /* URL Input */
+    .input-wrap {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+
+    .url-input {
+      width: 100%;
+      height: 44px;
+      background: var(--surface-recessed);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 0 96px 0 13px;
+      font-family: inherit;
+      font-size: 13.5px;
+      color: var(--text);
+      outline: none;
+      transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    }
+
+    .url-input::placeholder { color: var(--text-muted); }
+    .url-input:focus {
+      border-color: var(--border-strong);
+      box-shadow: 0 0 0 3px var(--focus-ring);
+    }
+
+    .input-actions {
+      position: absolute;
+      right: 5px;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .paste-btn {
+      appearance: none;
+      height: 32px;
+      padding: 0 10px;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 7px;
+      color: var(--text-secondary);
+      font-family: inherit;
+      font-size: 12px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .paste-btn:hover {
+      color: var(--text);
+      border-color: var(--border-strong);
+      background: var(--surface-hover);
+    }
+
+    .clear-btn {
+      appearance: none;
+      width: 26px;
+      height: 32px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: transparent;
+      border: none;
+      border-radius: 7px;
+      color: var(--text-muted);
+      cursor: pointer;
+    }
+
+    .clear-btn:hover { color: var(--text); }
+
+    /* Format Segmented */
+    .segment-track {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 4px;
+      background: var(--surface-recessed);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 4px;
+    }
+
+    .segment-btn {
+      appearance: none;
+      border: 1px solid transparent;
+      background: transparent;
+      border-radius: 7px;
+      padding: 9px 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      color: var(--text-secondary);
+      font-family: inherit;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .segment-btn:hover { color: var(--text); }
+    .segment-btn.active {
+      background: var(--pill-active-bg);
+      color: var(--pill-active-text);
+      border-color: var(--border);
+      box-shadow: var(--pill-active-shadow);
+    }
+
+    /* Quality Grid */
+    .quality-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+    }
+
+    .quality-btn {
+      appearance: none;
+      background: var(--surface-recessed);
+      border: 1px solid var(--border);
+      border-radius: 9px;
+      padding: 9px 6px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 2px;
+      cursor: pointer;
+      color: var(--text-secondary);
+      transition: all 0.15s ease;
+    }
+
+    .quality-btn:hover {
+      border-color: var(--border-strong);
+      color: var(--text);
+    }
+
+    .quality-btn .q-main {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12.5px;
+      font-weight: 500;
+    }
+
+    .quality-btn .q-sub {
+      font-size: 10px;
+      color: var(--text-muted);
+    }
+
+    .quality-btn.active {
+      background: var(--btn-bg);
+      border-color: var(--btn-bg);
+      color: var(--btn-text);
+    }
+
+    .quality-btn.active .q-sub {
+      color: var(--btn-text);
+      opacity: 0.72;
+    }
+
+    /* Folder Row */
+    .folder-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      background: var(--surface-recessed);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 6px 6px 6px 12px;
+    }
+
+    .folder-info {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      min-width: 0;
+      flex: 1;
+      color: var(--text-secondary);
+    }
+
+    .folder-info svg { flex-shrink: 0; }
+
+    .folder-path {
+      font-size: 12px;
+      color: var(--text-secondary);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      direction: rtl;
+      text-align: left;
+    }
+
+    /* Buttons */
+    .primary-btn {
+      appearance: none;
+      width: 100%;
+      height: 44px;
+      border: none;
+      border-radius: 10px;
+      background: var(--btn-bg);
+      color: var(--btn-text);
+      font-family: inherit;
+      font-size: 13.5px;
+      font-weight: 500;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      cursor: pointer;
+      transition: background-color 0.15s ease, transform 0.1s ease;
+    }
+
+    .primary-btn:hover { background: var(--btn-hover); }
+    .primary-btn:active { transform: scale(0.99); }
+
+    .secondary-btn {
+      appearance: none;
+      width: 100%;
+      height: 40px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: transparent;
+      color: var(--text-secondary);
+      font-family: inherit;
+      font-size: 13px;
+      font-weight: 500;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .secondary-btn:hover {
+      background: var(--surface-recessed);
+      color: var(--text);
+      border-color: var(--border-strong);
+    }
+
+    .action-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+
+    .error-box {
+      margin-top: 14px;
+      padding: 11px 13px;
+      background: var(--danger-bg);
+      border: 1px solid var(--danger-border);
+      border-radius: 9px;
+      color: var(--danger-text);
+      font-size: 12.5px;
+      line-height: 1.45;
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+    }
+
+    .error-box svg { flex-shrink: 0; margin-top: 1px; }
+
+    /* Progress State */
+    .progress-section {
+      padding: 8px 0 2px;
+    }
+
+    .progress-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+
+    .progress-label {
+      display: inline-flex;
+      align-items: center;
+      gap: 9px;
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--text);
+    }
+
+    .progress-percent {
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text-secondary);
+    }
+
+    .progress-track {
+      width: 100%;
+      height: 5px;
+      background: var(--surface-recessed);
+      border-radius: 999px;
+      overflow: hidden;
+      margin-bottom: 12px;
+    }
+
+    .progress-fill {
+      height: 100%;
+      width: 0%;
+      background: var(--text);
+      border-radius: 999px;
+      transition: width 0.25s ease;
+    }
+
+    .progress-meta {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-bottom: 18px;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .spinner { animation: spin 0.9s linear infinite; }
+
+    /* Completed State */
+    .completed-section {
+      padding: 6px 0 2px;
+    }
+
+    .result-box {
+      background: var(--surface-recessed);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 15px;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+    }
+
+    .result-icon {
+      width: 34px;
+      height: 34px;
+      flex-shrink: 0;
+      border-radius: 8px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--text);
+    }
+
+    .result-details { min-width: 0; flex: 1; }
+
+    .result-status {
+      font-size: 11px;
+      font-weight: 500;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      margin-bottom: 4px;
+    }
+
+    .result-title {
+      font-size: 13.5px;
+      font-weight: 500;
+      color: var(--text);
+      line-height: 1.4;
+      margin-bottom: 8px;
+      word-break: break-word;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    .result-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .meta-tag {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      padding: 3px 7px;
+      border-radius: 5px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--text-secondary);
+    }
+
+    /* Footer */
+    .footer {
+      width: 100%;
+      max-width: 580px;
+      margin: 0 auto;
+      padding: 0 22px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      font-size: 11.5px;
+      color: var(--text-muted);
+    }
+
+    .footer-platforms {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .dot {
+      width: 3px;
+      height: 3px;
+      border-radius: 50%;
+      background: var(--border-strong);
+    }
+
+    @media (max-width: 480px) {
+      .quality-grid { grid-template-columns: repeat(2, 1fr); }
+      .action-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="brand">
+      <img src="icon.png" alt="Logo">
+      <span class="mono">converter.ozcan.work</span>
+    </div>
+
+    <div class="controls">
+      <div class="lang-switch" role="group" aria-label="Language">
+        <button type="button" class="lang-btn" id="langTr">TR</button>
+        <button type="button" class="lang-btn" id="langEn">EN</button>
+      </div>
+
+      <button type="button" class="icon-btn" id="themeToggle" aria-label="Toggle theme">
+        <svg id="sunIcon" class="hidden" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="4"></circle>
+          <path d="M12 2v2"></path><path d="M12 20v2"></path>
+          <path d="m4.93 4.93 1.41 1.41"></path><path d="m17.66 17.66 1.41 1.41"></path>
+          <path d="M2 12h2"></path><path d="M20 12h2"></path>
+          <path d="m6.34 17.66-1.41 1.41"></path><path d="m19.07 4.93-1.41 1.41"></path>
+        </svg>
+        <svg id="moonIcon" class="hidden" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"></path>
+        </svg>
+      </button>
+    </div>
+  </header>
+
+  <main class="container">
+    <div class="heading-block">
+      <h1 data-i18n="title">Medya Dönüştürücü</h1>
+      <p data-i18n="subtitle">YouTube, Instagram ve TikTok videolarını MP4 veya MP3 formatına dönüştürün.</p>
+    </div>
+
+    <div class="card">
+      <!-- FORM STATE -->
+      <div id="formSection">
+        <div class="field-group">
+          <div class="field-header">
+            <label for="urlInput" class="field-label" data-i18n="linkLabel">Bağlantı</label>
+          </div>
+          <div class="input-wrap">
+            <input type="url" id="urlInput" class="url-input" autocomplete="off" spellcheck="false" placeholder="">
+            <div class="input-actions">
+              <button type="button" id="clearBtn" class="clear-btn hidden" aria-label="Clear">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M18 6 6 18"></path><path d="m6 6 12 12"></path>
+                </svg>
+              </button>
+              <button type="button" id="pasteBtn" class="paste-btn">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                  <rect width="8" height="4" x="8" y="2" rx="1" ry="1"></rect>
+                  <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path>
+                </svg>
+                <span data-i18n="paste">Yapıştır</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="field-group">
+          <div class="field-header">
+            <span class="field-label" data-i18n="formatLabel">Format</span>
+          </div>
+          <div class="segment-track">
+            <button type="button" id="fmtMp4" class="segment-btn active" data-format="mp4">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <rect width="18" height="14" x="3" y="5" rx="2"></rect>
+                <path d="m10 9 5 3-5 3Z"></path>
+              </svg>
+              <span data-i18n="formatMp4">MP4 Video</span>
+            </button>
+            <button type="button" id="fmtMp3" class="segment-btn" data-format="mp3">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M9 18V5l12-2v13"></path>
+                <circle cx="6" cy="18" r="3"></circle>
+                <circle cx="18" cy="16" r="3"></circle>
+              </svg>
+              <span data-i18n="formatMp3">MP3 Ses</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="field-group">
+          <div class="field-header">
+            <span class="field-label" data-i18n="qualityLabel">Kalite</span>
+            <span id="qualityHint" class="field-hint mono"></span>
+          </div>
+
+          <div id="videoQualities" class="quality-grid">
+            <button type="button" class="quality-btn active" data-fmt="mp4" data-quality="best">
+              <span class="q-main" data-i18n="qBest">En İyi</span>
+              <span class="q-sub" data-i18n="qAuto">Otomatik</span>
+            </button>
+            <button type="button" class="quality-btn" data-fmt="mp4" data-quality="1080">
+              <span class="q-main">1080p</span>
+              <span class="q-sub">Full HD</span>
+            </button>
+            <button type="button" class="quality-btn" data-fmt="mp4" data-quality="720">
+              <span class="q-main">720p</span>
+              <span class="q-sub">HD</span>
+            </button>
+            <button type="button" class="quality-btn" data-fmt="mp4" data-quality="480">
+              <span class="q-main">480p</span>
+              <span class="q-sub" data-i18n="qSmall">Küçük</span>
+            </button>
+          </div>
+
+          <div id="audioQualities" class="quality-grid hidden">
+            <button type="button" class="quality-btn active" data-fmt="mp3" data-quality="320">
+              <span class="q-main">320k</span>
+              <span class="q-sub" data-i18n="qHighest">En Yüksek</span>
+            </button>
+            <button type="button" class="quality-btn" data-fmt="mp3" data-quality="256">
+              <span class="q-main">256k</span>
+              <span class="q-sub" data-i18n="qHigh">Yüksek</span>
+            </button>
+            <button type="button" class="quality-btn" data-fmt="mp3" data-quality="192">
+              <span class="q-main">192k</span>
+              <span class="q-sub" data-i18n="qStandard">Standart</span>
+            </button>
+            <button type="button" class="quality-btn" data-fmt="mp3" data-quality="128">
+              <span class="q-main">128k</span>
+              <span class="q-sub" data-i18n="qCompact">Kompakt</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="field-group">
+          <div class="field-header">
+            <span class="field-label" data-i18n="folderLabel">Kayıt Klasörü</span>
+          </div>
+          <div class="folder-row">
+            <div class="folder-info">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z"></path>
+              </svg>
+              <span id="folderPathText" class="folder-path mono"></span>
+            </div>
+            <button type="button" id="browseBtn" class="paste-btn">
+              <span data-i18n="changeFolder">Değiştir</span>
+            </button>
+          </div>
+        </div>
+
+        <button type="button" id="startBtn" class="primary-btn">
+          <span data-i18n="downloadBtn">İndir ve Dönüştür</span>
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path>
+          </svg>
+        </button>
+
+        <div id="errorBox" class="error-box hidden" role="alert">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="12" x2="12" y1="8" y2="12"></line>
+            <line x1="12" x2="12.01" y1="16" y2="16"></line>
+          </svg>
+          <div id="errorText"></div>
+        </div>
+      </div>
+
+      <!-- PROGRESS STATE -->
+      <div id="progressSection" class="progress-section hidden">
+        <div class="progress-top">
+          <div class="progress-label">
+            <svg class="spinner" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+              <path d="M21 12a9 9 0 1 1-6.219-8.56"></path>
+            </svg>
+            <span id="progressStatusText"></span>
+          </div>
+          <span id="percentText" class="progress-percent mono">0%</span>
+        </div>
+
+        <div class="progress-track">
+          <div id="progressBar" class="progress-fill"></div>
+        </div>
+
+        <div class="progress-meta mono">
+          <span id="speedText">--</span>
+          <span id="etaText">--</span>
+        </div>
+
+        <button type="button" id="cancelBtn" class="secondary-btn">
+          <span data-i18n="cancelBtn">İptal Et</span>
+        </button>
+      </div>
+
+      <!-- COMPLETED STATE -->
+      <div id="completedSection" class="completed-section hidden">
+        <div class="result-box">
+          <div class="result-icon">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M20 6 9 17l-5-5"></path>
+            </svg>
+          </div>
+          <div class="result-details">
+            <div class="result-status" data-i18n="savedLabel">Kaydedildi</div>
+            <div id="resultTitle" class="result-title"></div>
+            <div class="result-meta">
+              <span id="resultFormat" class="meta-tag"></span>
+              <span id="resultSize" class="meta-tag"></span>
+            </div>
+          </div>
+        </div>
+
+        <div class="action-grid">
+          <button type="button" id="openFileBtn" class="primary-btn">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polygon points="6 3 20 12 6 21 6 3"></polygon>
+            </svg>
+            <span data-i18n="openFileBtn">Dosyayı Aç</span>
+          </button>
+
+          <button type="button" id="openFolderBtn" class="secondary-btn" style="height: 44px;">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z"></path>
+            </svg>
+            <span data-i18n="openFolderBtn">Klasörde Göster</span>
+          </button>
+        </div>
+
+        <button type="button" id="resetBtn" class="secondary-btn">
+          <span data-i18n="convertAnotherBtn">Başka bir video dönüştür</span>
+        </button>
+      </div>
+    </div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-platforms">
+      <span>YouTube</span>
+      <span class="dot"></span>
+      <span>Instagram</span>
+      <span class="dot"></span>
+      <span>TikTok</span>
+    </div>
+    <span id="versionText" class="mono">v1.0.0</span>
+  </footer>
+
+  <script>
+    const I18N = {
+      tr: {
+        title: 'Medya Dönüştürücü',
+        subtitle: 'YouTube, Instagram ve TikTok videolarını MP4 veya MP3 formatına dönüştürün.',
+        linkLabel: 'Bağlantı',
+        urlPlaceholder: 'Video veya gönderi linkini yapıştırın...',
+        paste: 'Yapıştır',
+        formatLabel: 'Format',
+        formatMp4: 'MP4 Video',
+        formatMp3: 'MP3 Ses',
+        qualityLabel: 'Kalite',
+        qBest: 'En İyi',
+        qAuto: 'Otomatik',
+        qSmall: 'Küçük',
+        qHighest: 'En Yüksek',
+        qHigh: 'Yüksek',
+        qStandard: 'Standart',
+        qCompact: 'Kompakt',
+        folderLabel: 'Kayıt Klasörü',
+        changeFolder: 'Değiştir',
+        downloadBtn: 'İndir ve Dönüştür',
+        cancelBtn: 'İptal Et',
+        savedLabel: 'Kaydedildi',
+        openFileBtn: 'Dosyayı Aç',
+        openFolderBtn: 'Klasörde Göster',
+        convertAnotherBtn: 'Başka bir video dönüştür',
+        errEmptyUrl: 'Lütfen bir video veya ses bağlantısı girin.',
+        errInvalidUrl: 'Geçersiz bağlantı. Link http:// veya https:// ile başlamalıdır.',
+        errGeneric: 'Dönüştürme sırasında bir hata oluştu.',
+        errFfmpeg: 'FFmpeg bulunamadı. MP3 ve yüksek kaliteli MP4 dönüştürme için FFmpeg gereklidir.',
+        statusInspecting: 'Bağlantı inceleniyor...',
+        statusDownloading: 'İndiriliyor...',
+        statusConverting: 'Dönüştürülüyor',
+        speedPrefix: 'Hız',
+        etaPrefix: 'Kalan',
+        calculating: 'Hesaplanıyor...',
+        processing: 'İşleniyor...',
+        almostReady: 'Neredeyse hazır',
+        hintMap: {
+          mp4: { best: 'Maksimum çözünürlük', '1080': '1080p Full HD', '720': '720p HD', '480': '480p SD' },
+          mp3: { '320': '320 kbps', '256': '256 kbps', '192': '192 kbps', '128': '128 kbps' }
+        },
+        resultQuality: {
+          best: 'En İyi', '1080': '1080p', '720': '720p', '480': '480p',
+          '320': '320 kbps', '256': '256 kbps', '192': '192 kbps', '128': '128 kbps'
+        },
+        defaultMediaTitle: 'Medya Dosyası',
+        themeTitle: 'Temayı değiştir'
+      },
+      en: {
+        title: 'Media Converter',
+        subtitle: 'Convert YouTube, Instagram, and TikTok videos to MP4 or MP3.',
+        linkLabel: 'Link',
+        urlPlaceholder: 'Paste a video or post URL...',
+        paste: 'Paste',
+        formatLabel: 'Format',
+        formatMp4: 'MP4 Video',
+        formatMp3: 'MP3 Audio',
+        qualityLabel: 'Quality',
+        qBest: 'Best',
+        qAuto: 'Auto',
+        qSmall: 'Small',
+        qHighest: 'Highest',
+        qHigh: 'High',
+        qStandard: 'Standard',
+        qCompact: 'Compact',
+        folderLabel: 'Save Location',
+        changeFolder: 'Change',
+        downloadBtn: 'Download & Convert',
+        cancelBtn: 'Cancel',
+        savedLabel: 'Saved',
+        openFileBtn: 'Open File',
+        openFolderBtn: 'Show in Folder',
+        convertAnotherBtn: 'Convert another video',
+        errEmptyUrl: 'Please paste a video or audio link.',
+        errInvalidUrl: 'Invalid URL. Link must start with http:// or https://.',
+        errGeneric: 'An error occurred during conversion.',
+        errFfmpeg: 'FFmpeg was not found. FFmpeg is required for MP3 and HD MP4 merging.',
+        statusInspecting: 'Inspecting link...',
+        statusDownloading: 'Downloading...',
+        statusConverting: 'Converting',
+        speedPrefix: 'Speed',
+        etaPrefix: 'ETA',
+        calculating: 'Calculating...',
+        processing: 'Processing...',
+        almostReady: 'Almost ready',
+        hintMap: {
+          mp4: { best: 'Maximum resolution', '1080': '1080p Full HD', '720': '720p HD', '480': '480p SD' },
+          mp3: { '320': '320 kbps', '256': '256 kbps', '192': '192 kbps', '128': '128 kbps' }
+        },
+        resultQuality: {
+          best: 'Best', '1080': '1080p', '720': '720p', '480': '480p',
+          '320': '320 kbps', '256': '256 kbps', '192': '192 kbps', '128': '128 kbps'
+        },
+        defaultMediaTitle: 'Media File',
+        themeTitle: 'Toggle theme'
+      }
+    };
+
+    let currentLang = 'tr';
+    let currentTheme = 'dark';
+    let selectedFormat = 'mp4';
+    let selectedVideoQuality = 'best';
+    let selectedAudioQuality = '320';
+    let currentJobId = null;
+    let pollInterval = null;
+    let lastCompletedJob = null;
+
+    const langTrBtn = document.getElementById('langTr');
+    const langEnBtn = document.getElementById('langEn');
+    const themeToggle = document.getElementById('themeToggle');
+    const sunIcon = document.getElementById('sunIcon');
+    const moonIcon = document.getElementById('moonIcon');
+
+    const urlInput = document.getElementById('urlInput');
+    const pasteBtn = document.getElementById('pasteBtn');
+    const clearBtn = document.getElementById('clearBtn');
+    const fmtMp4 = document.getElementById('fmtMp4');
+    const fmtMp3 = document.getElementById('fmtMp3');
+    const videoQualities = document.getElementById('videoQualities');
+    const audioQualities = document.getElementById('audioQualities');
+    const qualityHint = document.getElementById('qualityHint');
+    const folderPathText = document.getElementById('folderPathText');
+    const browseBtn = document.getElementById('browseBtn');
+    const startBtn = document.getElementById('startBtn');
+    const cancelBtn = document.getElementById('cancelBtn');
+    const errorBox = document.getElementById('errorBox');
+    const errorText = document.getElementById('errorText');
+
+    const formSection = document.getElementById('formSection');
+    const progressSection = document.getElementById('progressSection');
+    const completedSection = document.getElementById('completedSection');
+
+    const progressStatusText = document.getElementById('progressStatusText');
+    const percentText = document.getElementById('percentText');
+    const progressBar = document.getElementById('progressBar');
+    const speedText = document.getElementById('speedText');
+    const etaText = document.getElementById('etaText');
+
+    const resultTitle = document.getElementById('resultTitle');
+    const resultFormat = document.getElementById('resultFormat');
+    const resultSize = document.getElementById('resultSize');
+    const openFileBtn = document.getElementById('openFileBtn');
+    const openFolderBtn = document.getElementById('openFolderBtn');
+    const resetBtn = document.getElementById('resetBtn');
+    const versionText = document.getElementById('versionText');
+
+    function t(key) {
+      return (I18N[currentLang] && I18N[currentLang][key]) || I18N.en[key] || key;
+    }
+
+    function applyTheme(theme, persist = false) {
+      currentTheme = theme === 'light' ? 'light' : 'dark';
+      document.documentElement.setAttribute('data-theme', currentTheme);
+      sunIcon.classList.toggle('hidden', currentTheme !== 'dark');
+      moonIcon.classList.toggle('hidden', currentTheme === 'dark');
+      if (persist && window.pywebview && window.pywebview.api) {
+        window.pywebview.api.set_theme(currentTheme);
+      }
+    }
+
+    function applyLanguage(lang, persist = false) {
+      currentLang = lang === 'tr' ? 'tr' : 'en';
+      document.documentElement.setAttribute('lang', currentLang);
+      langTrBtn.classList.toggle('active', currentLang === 'tr');
+      langEnBtn.classList.toggle('active', currentLang === 'en');
+
+      document.querySelectorAll('[data-i18n]').forEach(el => {
+        el.textContent = t(el.getAttribute('data-i18n'));
+      });
+      urlInput.placeholder = t('urlPlaceholder');
+      themeToggle.title = t('themeTitle');
+      updateQualityHint();
+
+      if (lastCompletedJob && !completedSection.classList.contains('hidden')) {
+        renderCompletedMeta(lastCompletedJob);
+      }
+      if (persist && window.pywebview && window.pywebview.api) {
+        window.pywebview.api.set_lang(currentLang);
+      }
+    }
+
+    function updateQualityHint() {
+      const q = selectedFormat === 'mp4' ? selectedVideoQuality : selectedAudioQuality;
+      const map = I18N[currentLang].hintMap[selectedFormat];
+      qualityHint.textContent = (map && map[q]) || q;
+    }
+
+    function setFormat(fmt) {
+      selectedFormat = fmt;
+      fmtMp4.classList.toggle('active', fmt === 'mp4');
+      fmtMp3.classList.toggle('active', fmt === 'mp3');
+      videoQualities.classList.toggle('hidden', fmt !== 'mp4');
+      audioQualities.classList.toggle('hidden', fmt !== 'mp3');
+      updateQualityHint();
+    }
+
+    function syncClearBtn() {
+      clearBtn.classList.toggle('hidden', !urlInput.value.trim());
+    }
+
+    function showError(msg) {
+      errorText.textContent = msg;
+      errorBox.classList.remove('hidden');
+    }
+
+    function hideError() {
+      errorBox.classList.add('hidden');
+    }
+
+    function renderCompletedMeta(job) {
+      const fmt = job.format || selectedFormat;
+      const q = job.quality || (fmt === 'mp4' ? selectedVideoQuality : selectedAudioQuality);
+      const qText = (I18N[currentLang].resultQuality && I18N[currentLang].resultQuality[q]) || q;
+      resultTitle.textContent = job.title || t('defaultMediaTitle');
+      resultFormat.textContent = `${fmt.toUpperCase()} · ${qText}`;
+      resultSize.textContent = job.file_size || '';
+      resultSize.classList.toggle('hidden', !job.file_size);
+    }
+
+    // Event bindings
+    themeToggle.addEventListener('click', () => applyTheme(currentTheme === 'dark' ? 'light' : 'dark', true));
+    langTrBtn.addEventListener('click', () => applyLanguage('tr', true));
+    langEnBtn.addEventListener('click', () => applyLanguage('en', true));
+    fmtMp4.addEventListener('click', () => setFormat('mp4'));
+    fmtMp3.addEventListener('click', () => setFormat('mp3'));
+
+    document.querySelectorAll('.quality-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const q = btn.dataset.quality;
+        const fmt = btn.dataset.fmt;
+        const containerId = fmt === 'mp4' ? '#videoQualities' : '#audioQualities';
+        if (fmt === 'mp4') selectedVideoQuality = q;
+        else selectedAudioQuality = q;
+        document.querySelectorAll(`${containerId} .quality-btn`).forEach(b => b.classList.toggle('active', b === btn));
+        updateQualityHint();
+      });
+    });
+
+    urlInput.addEventListener('input', () => { syncClearBtn(); hideError(); });
+    urlInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') { e.preventDefault(); startBtn.click(); }
+    });
+
+    clearBtn.addEventListener('click', () => {
+      urlInput.value = '';
+      syncClearBtn();
+      hideError();
+      urlInput.focus();
+    });
+
+    pasteBtn.addEventListener('click', async () => {
+      try {
+        const res = await window.pywebview.api.get_clipboard();
+        if (res && res.text) {
+          urlInput.value = res.text;
+          syncClearBtn();
+          hideError();
+        }
+      } catch (e) {
+        urlInput.focus();
+      }
+    });
+
+    browseBtn.addEventListener('click', async () => {
+      try {
+        const res = await window.pywebview.api.choose_folder();
+        if (res && res.save_dir) {
+          folderPathText.textContent = res.save_dir;
+          folderPathText.title = res.save_dir;
+        }
+      } catch (e) {}
+    });
+
+    startBtn.addEventListener('click', async () => {
+      hideError();
+      const url = urlInput.value.trim();
+      if (!url) { showError(t('errEmptyUrl')); urlInput.focus(); return; }
+      if (!url.startsWith('http://') && !url.startsWith('https://')) {
+        showError(t('errInvalidUrl')); urlInput.focus(); return;
+      }
+
+      const activeQuality = selectedFormat === 'mp4' ? selectedVideoQuality : selectedAudioQuality;
+
+      formSection.classList.add('hidden');
+      completedSection.classList.add('hidden');
+      progressSection.classList.remove('hidden');
+
+      progressBar.style.width = '5%';
+      percentText.textContent = '5%';
+      progressStatusText.textContent = t('statusInspecting');
+      speedText.textContent = t('calculating');
+      etaText.textContent = '--';
+
+      try {
+        const res = await window.pywebview.api.start_download(url, selectedFormat, activeQuality);
+        if (!res || !res.success) {
+          throw new Error((res && res.error) || t('errGeneric'));
+        }
+        currentJobId = res.job_id;
+        startPolling(currentJobId, selectedFormat, activeQuality);
+      } catch (err) {
+        progressSection.classList.add('hidden');
+        formSection.classList.remove('hidden');
+        showError(err.message || t('errGeneric'));
+      }
+    });
+
+    cancelBtn.addEventListener('click', async () => {
+      if (pollInterval) clearInterval(pollInterval);
+      if (currentJobId) {
+        try { await window.pywebview.api.cancel_download(currentJobId); } catch (e) {}
+      }
+      currentJobId = null;
+      progressSection.classList.add('hidden');
+      formSection.classList.remove('hidden');
+    });
+
+    function startPolling(jobId, fmt, q) {
+      if (pollInterval) clearInterval(pollInterval);
+      pollInterval = setInterval(async () => {
+        try {
+          const job = await window.pywebview.api.get_status(jobId);
+          if (!job) return;
+
+          if (job.status === 'downloading') {
+            const p = job.progress || 10;
+            progressBar.style.width = `${p}%`;
+            percentText.textContent = `${p}%`;
+            progressStatusText.textContent = t('statusDownloading');
+            speedText.textContent = job.speed ? `${t('speedPrefix')}: ${job.speed}` : t('calculating');
+            etaText.textContent = job.eta ? `${t('etaPrefix')}: ${job.eta}` : '--';
+          } else if (job.status === 'converting') {
+            progressBar.style.width = '98%';
+            percentText.textContent = '98%';
+            progressStatusText.textContent = `${t('statusConverting')} (${fmt.toUpperCase()})...`;
+            speedText.textContent = t('processing');
+            etaText.textContent = t('almostReady');
+          } else if (job.status === 'completed') {
+            clearInterval(pollInterval);
+            progressBar.style.width = '100%';
+            percentText.textContent = '100%';
+            lastCompletedJob = { ...job, format: fmt, quality: job.quality || q };
+
+            setTimeout(() => {
+              progressSection.classList.add('hidden');
+              completedSection.classList.remove('hidden');
+              renderCompletedMeta(lastCompletedJob);
+            }, 300);
+          } else if (job.status === 'cancelled') {
+            clearInterval(pollInterval);
+            progressSection.classList.add('hidden');
+            formSection.classList.remove('hidden');
+          } else if (job.status === 'error') {
+            clearInterval(pollInterval);
+            progressSection.classList.add('hidden');
+            formSection.classList.remove('hidden');
+            showError(job.error || t('errGeneric'));
+          }
+        } catch (err) {
+          console.error(err);
+        }
+      }, 600);
+    }
+
+    openFileBtn.addEventListener('click', () => {
+      if (lastCompletedJob && lastCompletedJob.file_path) {
+        window.pywebview.api.open_file(lastCompletedJob.file_path);
+      }
+    });
+
+    openFolderBtn.addEventListener('click', () => {
+      const fp = lastCompletedJob ? lastCompletedJob.file_path : '';
+      window.pywebview.api.open_folder(fp);
+    });
+
+    resetBtn.addEventListener('click', () => {
+      completedSection.classList.add('hidden');
+      formSection.classList.remove('hidden');
+      urlInput.value = '';
+      lastCompletedJob = null;
+      syncClearBtn();
+      hideError();
+      urlInput.focus();
+    });
+
+    // Global Ctrl+V shortcut when not inside input
+    window.addEventListener('keydown', (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'v') {
+        if (document.activeElement !== urlInput && !formSection.classList.contains('hidden')) {
+          pasteBtn.click();
+        }
+      }
+    });
+
+    let initialized = false;
+    async function initApp() {
+      if (initialized) return;
+      initialized = true;
+      try {
+        const state = await window.pywebview.api.get_init_state();
+        applyTheme(state.theme, false);
+        applyLanguage(state.lang, false);
+        folderPathText.textContent = state.save_dir;
+        folderPathText.title = state.save_dir;
+        if (state.version) versionText.textContent = 'v' + state.version;
+        if (!state.ffmpeg_ok) {
+          showError(t('errFfmpeg'));
+        }
+      } catch (e) {
+        applyTheme('dark', false);
+        applyLanguage('tr', false);
+      } finally {
+        document.body.classList.add('ready');
+      }
+    }
+
+    if (window.pywebview && window.pywebview.api && typeof window.pywebview.api.get_init_state === 'function') {
+      initApp();
+    } else {
+      window.addEventListener('pywebviewready', initApp);
+    }
+  </script>
+</body>
+</html>

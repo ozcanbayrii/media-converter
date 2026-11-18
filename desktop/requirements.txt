@@ -1,0 +1,5 @@
+pywebview>=6.0.0
+yt-dlp>=2026.1.0
+curl_cffi>=0.7.0
+pillow>=10.0.0
+pyinstaller>=6.0.0

@@ -1,0 +1,24 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+.venv/
+env/
+
+# Build & packaging
+desktop/build/
+desktop/dist/
+desktop/*.spec
+*.egg-info/
+
+# Runtime temporary downloads
+web/downloads/*
+!web/downloads/.gitkeep
+
+# OS & Editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+.env
